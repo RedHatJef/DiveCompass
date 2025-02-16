@@ -64,4 +64,10 @@ Underwater dive compass for cave diving survey based on Atmel AVR128DA32
 | 31 | RXD0 | 220 ohm --> RS232 TXD |
 | 32 | SDA0 | Main I2C SDA |
 
+## Additional Notes
+
+* Finding Serial Ports with PowerShell
+  * DETAILS: [System.IO.Ports.SerialPort]::GetPortNames()
+  * SUMMARY LIST: Get-WMIObject Win32_SerialPort
+
 
