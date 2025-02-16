@@ -29,40 +29,40 @@ Underwater dive compass for cave diving survey based on Atmel AVR128DA32
 
 ## AVR128DA32 Pin Connections
 
-| Pin | Name | Connected To |
-| ---: | :---: | :--- |
-| 1 | SCL0 | Main I2C SCL |
-| 2 | MOSI0 | Display SDA |
-| 3 | | 
-| 4 | SCK0 | Display SCL |
-| 5 | SS0 | Display CS |
-| 6 | GPIO | Display DC |
-| 7 | | 
-| 8 | | 
-| 9 | | 
-| 10 | | 
-| 11 | | 
-| 12 | | 
-| 13 | | 
-| 14 | | 
-| 15 | | 
-| 16 | | 
-| 17 | | 
-| 18 | AVCC | +3.3V | 
-| 19 | GND | GND | 
-| 20 | | 
-| 21 | | 
-| 22 | | 
-| 23 | | 
-| 24 | | 
-| 25 | | 
-| 26 | RST | Reset Switch |
-| 27 | UPDI | Programmer UPDI |
-| 28 | VCC | +3.3V | 
-| 29 | GND | GND | 
-| 30 | TXD0 | 220 ohm --> RS232 RXD |
-| 31 | RXD0 | 220 ohm --> RS232 TXD |
-| 32 | SDA0 | Main I2C SDA |
+| Pin | Port | Name | Connected To |
+| ---: | :---: | :---: | :--- |
+| 1 | PA3 | SCL0 | Main I2C SCL |
+| 2 | PA4 | MOSI0 | Display SDA |
+| 3 | PA5 | | | 
+| 4 | PA6 | SCK0 | Display SCL |
+| 5 | PA7 | SS0 | Display CS |
+| 6 | PC0 | GPIO | Display DC |
+| 7 | PC1 | | | 
+| 8 | PC2 | | | 
+| 9 | PC3 | | | 
+| 10 | PD0 | | | 
+| 11 | PD1 | | | 
+| 12 | PD2 | | | 
+| 13 | PD3 | | | 
+| 14 | PD4 | | | 
+| 15 | PD5 | | | 
+| 16 | PD6 | | | 
+| 17 | PD7 | | | 
+| 18 | AVCC | AVCC | +3.3V | 
+| 19 | GND | GND | GND | 
+| 20 | PF0 | | | 
+| 21 | PF1 | | | 
+| 22 | PF2 | | | 
+| 23 | PF3 | | | 
+| 24 | PF4 | | | 
+| 25 | PF5 | | | 
+| 26 | PF6 | RST | Reset Switch |
+| 27 | UPDI | UPDI | Programmer UPDI |
+| 28 | VCC | VCC | +3.3V | 
+| 29 | GND | GND | GND | 
+| 30 | PA0 | TXD0 | 220 ohm --> RS232 RXD |
+| 31 | PA1 | RXD0 | 220 ohm --> RS232 TXD |
+| 32 | PA2 | SDA0 | Main I2C SDA |
 
 ## Additional Notes
 
