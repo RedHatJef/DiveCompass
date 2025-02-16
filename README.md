@@ -33,6 +33,8 @@ Underwater dive compass for cave diving survey based on Atmel AVR128DA32
 | :---: | --- |
 | 1 | Main I2C SCL |
 | 26 | Reset Switch |
-| 31 | Main I2C SDA |
+| 30 | 220 ohm --> RS232 RXD |
+| 31 | 220 ohm --> RS232 TXD |
+| 32 | Main I2C SDA |
 
 
