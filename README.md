@@ -37,8 +37,8 @@ Underwater dive compass for cave diving survey based on Atmel AVR128DA32
 | 4 | 6 | PA6 | SCK0 | Display SCL |
 | 5 | 7 | PA7 | SS0 | Display CS |
 | 6 | 8 | PC0 | GPIO | Display DC |
-| 7 | 9 | PC1 | | | 
-| 8 | 10 | PC2 | | | 
+| 7 | 9 | PC1 | GPIO | BNO08X_INT | 
+| 8 | 10 | PC2 | GPIO | BNO08X_RST | 
 | 9 | 11 | PC3 | | | 
 | 10 | 12 | PD0 | | | 
 | 11 | 13 | PD1 | | | 
