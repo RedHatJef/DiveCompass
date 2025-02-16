@@ -29,12 +29,39 @@ Underwater dive compass for cave diving survey based on Atmel AVR128DA32
 
 ## AVR128DA32 Pin Connections
 
-| Pin | Connected To |
-| :---: | --- |
-| 1 | Main I2C SCL |
-| 26 | Reset Switch |
-| 30 | 220 ohm --> RS232 RXD |
-| 31 | 220 ohm --> RS232 TXD |
-| 32 | Main I2C SDA |
+| Pin | Name | Connected To |
+| ---: | :---: | :--- |
+| 1 | SCL0 | Main I2C SCL |
+| 2 | MOSI0 | Display SDA |
+| 3 | | 
+| 4 | SCK0 | Display SCL |
+| 5 | SS0 | Display CS |
+| 6 | GPIO | Display DC |
+| 7 | | 
+| 8 | | 
+| 9 | | 
+| 10 | | 
+| 11 | | 
+| 12 | | 
+| 13 | | 
+| 14 | | 
+| 15 | | 
+| 16 | | 
+| 17 | | 
+| 18 | AVCC | +3.3V | 
+| 19 | GND | GND | 
+| 20 | | 
+| 21 | | 
+| 22 | | 
+| 23 | | 
+| 24 | | 
+| 25 | | 
+| 26 | RST | Reset Switch |
+| 27 | UPDI | Programmer UPDI |
+| 28 | VCC | +3.3V | 
+| 29 | GND | GND | 
+| 30 | TXD0 | 220 ohm --> RS232 RXD |
+| 31 | RXD0 | 220 ohm --> RS232 TXD |
+| 32 | SDA0 | Main I2C SDA |
 
 
