@@ -2,6 +2,8 @@
 Underwater dive compass for cave diving survey based on Atmel AVR128DA32
 
 ## Devices
+* [AVR128DA32](https://ww1.microchip.com/downloads/en/DeviceDoc/40002183A.pdf)
+  * [Pinout](https://cdn.tindiemedia.com/images/resize/2fxPFlhMai_0tOqyeikwEtcKKMA=/p/fit-in/1370x912/filters:fill(fff)/i/77443/products/2023-04-18T07%3A53%3A42.799Z-DA32.png?1681779270)
 * [GC9A01](https://www.makerfabs.com/desfile/files/GC9A01A.pdf) Round Display
   * SPI interface
   * May want to look for a module with backlight controls?
