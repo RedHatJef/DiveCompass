@@ -2,9 +2,12 @@
 #include <Wire.h>
 #include <SPI.h>
 #include "Devices.h"
+#include "CompassBNO08X.h"
 
 static Devices devices;
+
 static Display display;
+static CompassBNO08X compassBNO08X;
 
 void setup() {
     cli();
@@ -12,12 +15,12 @@ void setup() {
     sei();
 
     Wire.begin();
-    Wire.setClock(10000000);
+    Wire.setClock(400000);
     SPI.setClockDivider(0);
 
     devices.display = &display;
+    devices.compass = &compassBNO08X;
 
-    display.init();
 
     TCA0.SINGLE.CTRLA = TCA_SINGLE_CLKSEL_DIV1024_gc | TCA_SINGLE_ENABLE_bm;
     TCA0.SINGLE.CTRLB = TCA_SINGLE_WGMODE_NORMAL_gc;
@@ -27,15 +30,19 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Hello!");
 
+    devices.display->init();
+    devices.compass->init();
+
     display.beginCalibration();
-    delay(11000);
+    devices.compass->calibrate();
     display.endCalibration();
     delay(100);
     display.clear();
 }
 
 void loop() {
-// write your code here
+    devices.display->update();
+    devices.compass->update();
 }
 
 ISR(TCA0_OVF_vect) {

@@ -52,6 +52,8 @@ void Display::updateFromISR() {
         int16_t xEnd = round(xEndD) + 120;
         int16_t yEnd = round(yEndD) + 120;
 
+
+
         if(xEnd != lastXEnd || yEnd != lastYEnd || xStart != lastXStart || yStart != lastYStart) {
             tft.drawLine(xStart, yStart, xEnd, yEnd, GC9A01A_CYAN);
             lastXStart = xStart;
