@@ -71,3 +71,10 @@ Underwater dive compass for cave diving survey based on Atmel AVR128DA32
   * SUMMARY LIST: Get-WMIObject Win32_SerialPort
 
 
+## Testing
+
+<p align="center">
+    <a href="https://youtube.com/shorts/slK0JE3C1SY">
+        <img src="img/DiveCompassTest.jpg" width="65%">
+    </a>
+</p>
