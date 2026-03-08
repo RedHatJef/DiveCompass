@@ -1,5 +1,69 @@
-# DiveCompass
-Underwater dive compass for cave diving survey based on Atmel AVR128DA32
+<p align="center">
+  <img src="img/DiveCompassHeroImage.jpg" width="100%">
+</p>
+
+<p align="center">
+    <img src="https://img.shields.io/badge/MCU-AVR128DA32-blue" />
+    <img src="https://img.shields.io/badge/Framework-Arduino-00979D?logo=arduino&logoColor=white" />
+    <img src="https://img.shields.io/badge/Platform-PlatformIO-ff6600?logo=platformio&logoColor=white" />
+    <img src="https://img.shields.io/badge/status-WIP-orange" />
+    <br>
+    <img src="https://img.shields.io/badge/Programmer-UPDI-B9BEC3" />
+    <img src="https://img.shields.io/badge/Bus-I2C-c66a00" />
+    <img src="https://img.shields.io/badge/Bus-SPI-c66a00" />
+    <img src="https://img.shields.io/badge/Display-GC9A01-6E75C8"/>
+    <br>
+    <img src="https://img.shields.io/badge/IMU-BNO080-3399ff" />
+    <img src="https://img.shields.io/badge/IMU-MPU6050-3399ff" />
+    <img src="https://img.shields.io/badge/Compass-QMC5883L-b8860b" />
+    <img src="https://img.shields.io/badge/Compass-LIS3MDL-b8860b" />
+</p>
+
+---
+
+# Project Overview
+TODO: Image of compass from Genny
+
+Underwater Cave Exploration - finding new places nobody has ever been, underwater, while cave diving - is an amazing feeling.  However, the cave diving community frowns on people who just go find stuff and don't make a record of the new passage.  Part of the reason this happens is because documenting new passage underwater is very challenging.
+
+Typically, a lead diver will lay a guideline through the cave and into a new section, tying off the line to "stations" like rocks on the floor or protrusions on the wall, keeping care that the lines are straight and do not slowly bend around walls.  A second diver will then follow behind, stopping at each station (tie-off) and take some measurements, recorded in a notebook with waterproof paper and a pencil.
+
+These measurements include:
+
+* Distance from the previous station.
+* Azimuth (Compass Bearing)
+* Depth of Water
+* LRUDs (distance from the station to the walls - in the directions Left, Right, Up, Down)
+
+Given this information, a 3-dimensional map can be created, and eventually a map others can use to navigate through the underwater passages.  Here is an example of an underwater cave map:
+
+<p align="center">
+<img src="http://www.caveatlas.com/systems/media/devils/devils_system.jpg" width="85%">
+</p>
+
+While a normal compass with headings marked on it can be used, it can prove problematic in low-light and potentially "not perfectly horizontal" positions.  Additionally, sometimes the numbers on compasses are very small and can be difficult to see while aligning with the guideline.  It is highly desirable to use a digital compass for headings - align the compass with the guideline, read a number, simple.
+
+Unfortunately, very few off-the-shelf answers exist.  Until recently, the SeaBear dive computer was great - small (wristwatch sized) and bright and the screen could lock onto the compass view.  This computer went out of production a number of years ago and supplies are quickly dwindling.  Also, deep cave diving and exploratory cave diving is a difficult environment - computers die.
+
+Both Shearwater and Garmin make dive watches that are small enough to use for this purpose - but these are expensive - over $1K.  Also, these are generally designed to be used for diving, so having them not firmly attached to your body can be problematic - if you lose the dive book with the compass/dive computer, you lose your source of decompression data.  Not ideal.
+
+The goal of this project is to build a small, waterproof, affordable, dedicated dive computer/depth gauge that can be calibrated and mounted in a survey book.
+
+# Architecture
+
+## A note on "electronic compasses"
+
+Practically speaking, at the scales discussed here, there is no such thing as a "digital compass."  Most digital devices with compasses built in are really "magnetometers" that are detecting the earth's magnetic field.  In a perfect world, this is a "mostly spherical" but requires calibration to find local lows/highs in the X/Y/Z directions.  [This article](https://docs.nanoframework.net/devicesdetails/Ak8963/README.html) does a great job of describing a simliar unit.
+
+<p align="center">
+<img src="https://docs.nanoframework.net/devicesimages/Ak8963/rawcalib.png" width="85%">
+</p>
+
+Calibration can be tricky - any nearby ferromagnetic items (cars, electrical lines, underground metal pipes, rebar in a building) can interfere with magnetic fields.  Additionally, if the magnetometer is exposed to a high enough magnetic field, it can fall out of calibration.  These really are sensitive devices.
+
+## A note on IMUs (Intertial Measurement Units)
+
+It's not quite enough to know what the magnetic fields are doing around the device - it's also important to be able to hold the device level.  As such, a multi-sensor IMU needs to be used.  These contain a magnetometer, accelerometer, and gyroscope.  The aim of this unit is to be able to indicate "is the compass level" - since compass headings are most accurate when precisely level.
 
 ## Devices
 * [AVR128DA32](https://ww1.microchip.com/downloads/en/DeviceDoc/40002183A.pdf)
