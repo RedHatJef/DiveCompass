@@ -1,3 +1,4 @@
+<a id="readme"></a>
 <p align="center">
   <img src="img/DiveCompassHeroImage.jpg" width="100%">
 </p>
