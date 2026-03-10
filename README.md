@@ -23,7 +23,6 @@
 ---
 
 # Project Overview
-TODO: Image of compass from Genny
 
 Underwater Cave Exploration - finding new places nobody has ever been, underwater, while cave diving - is an amazing feeling.  However, the cave diving community frowns on people who just go find stuff and don't make a record of the new passage.  Part of the reason this happens is because documenting new passage underwater is very challenging.
 
