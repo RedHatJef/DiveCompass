@@ -18,6 +18,7 @@ public:
     void endCalibration();
 
     void clear();
+    void speedTest();
 
 private:
     unsigned long calibrationStartTime = 0;
@@ -25,6 +26,8 @@ private:
     uint8_t lastYStart = 0;
     uint8_t lastXEnd = 0;
     uint8_t lastYEnd = 0;
+    uint8_t testRow = 0;
+    bool testWhite = true;
 };
 
 

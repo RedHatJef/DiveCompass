@@ -22,18 +22,35 @@
 Adafruit_GC9A01A tft(TFT_CS, TFT_DC);
 
 void Display::init() {
-    tft.begin();
+    tft.begin(12000000);
     clear();
 }
 
 void Display::clear() {
     tft.fillScreen(GC9A01A_BLACK);
     tft.setTextColor(GC9A01A_WHITE);
+
+    tft.setCursor(50,120);
+    tft.setTextColor(GC9A01A_ORANGE);
+    tft.setFont(&FreeMonoBold12pt7b);
+    tft.write("STARTING");
+
+    tft.endWrite();
+}
+
+void Display::speedTest() {
+    uint16_t color = testWhite ? GC9A01A_WHITE : GC9A01A_BLACK;
+    tft.drawFastHLine(0, testRow, 240, color);
+    testRow++;
+    if (testRow >= 240) {
+        testRow = 0;
+        testWhite = !testWhite;
+    }
     tft.endWrite();
 }
 
 void Display::update() {
-
+    speedTest();
 }
 
 void Display::updateFromISR() {

@@ -93,20 +93,20 @@ It's not quite enough to know what the magnetic fields are doing around the devi
 
 ## AVR128DA32 Pin Connections
 
-| Physical Pin | Virtual Pin | Port | Name | Connected To |
-| :---: | :---: | :---: | :---: | :--- |
-| 1 | 3 | PA3 | SCL0 | Main I2C SCL |
-| 2 | 4 | PA4 | MOSI0 | Display SDA |
-| 3 | 5 | PA5 | | | 
-| 4 | 6 | PA6 | SCK0 | Display SCL |
-| 5 | 7 | PA7 | SS0 | Display CS |
-| 6 | 8 | PC0 | GPIO | Display DC |
-| 7 | 9 | PC1 | GPIO | BNO08X_INT | 
-| 8 | 10 | PC2 | GPIO | BNO08X_RST | 
+| Physical Pin | Virtual Pin | Port | Function | Name | Connected To |
+| :---: | :---: | :---: | :---: | :---: | :--- |
+| 1 | 3 | PA3 | TWI0 | SCL0 | Device I2C SCL |
+| 2 | 4 | PA4 | SPI0 | MOSI0 | Display SDA |
+| 3 | 5 | PA5 | SPI0 | MISO | n/c (display does not output data) |
+| 4 | 6 | PA6 | SPI0 | SCK0 | Display SCL |
+| 5 | 7 | PA7 | SPI0 | SS0 | Display CS |
+| 6 | 8 | PC0 | GPIO | | Display DC (data/command) |
+| 7 | 9 | PC1 | GPIO | | Display RST | 
+| 8 | 10 | PC2 | | | 
 | 9 | 11 | PC3 | | | 
-| 10 | 12 | PD0 | | | 
-| 11 | 13 | PD1 | | | 
-| 12 | 14 | PD2 | | | 
+| 10 | 12 | PD0 | GPIO | | BNO080 Ext INT #1 |
+| 11 | 13 | PD1 | GPIO | | BNO080 Ext INT #2 |
+| 12 | 14 | PD2 | GPIO | | BNO080 RST #1<br>BNO080 RST #2 |
 | 13 | 15 | PD3 | | | 
 | 14 | 16 | PD4 | | | 
 | 15 | 17 | PD5 | | | 
@@ -120,13 +120,13 @@ It's not quite enough to know what the magnetic fields are doing around the devi
 | 23 | 23 | PF3 | | | 
 | 24 | 24 | PF4 | | | 
 | 25 | 25 | PF5 | | | 
-| 26 | 26 | PF6 | RST | Reset Switch |
+| 26 | 26 | PF6 | RST | Reset Switch | N/O momentary switch with 10K | 
 | 27 | | UPDI | UPDI | Programmer UPDI |
 | 28 | | VCC | VCC | +3.3V | 
 | 29 | | GND | GND | GND | 
-| 30 | 0 | PA0 | TXD0 | 220 ohm --> RS232 RXD |
-| 31 | 1 | PA1 | RXD0 | 220 ohm --> RS232 TXD |
-| 32 | 2 | PA2 | SDA0 | Main I2C SDA |
+| 30 | 0 | PA0 | Serial0 | TXD0 | 220 ohm --> RS232 RXD |
+| 31 | 1 | PA1 | Serial0 | RXD0 | 220 ohm --> RS232 TXD |
+| 32 | 2 | PA2 | TWI0 | SDA0 | Device I2C SDA |
 
 ## Additional Notes
 
