@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/projects/jef/CavAirMini4/**)",
+      "Bash(pio run *)",
+      "Bash(~/.platformio/penv/Scripts/pio run *)",
+      "Bash(~/.platformio/packages/toolchain-atmelavr/bin/avr-nm --size-sort -C -t d d:/projects/jef/DiveCompass/.pio/build/ATtiny3224/firmware.elf)",
+      "Bash(awk '$2 == \"B\" || $2 == \"b\" || $2 == \"D\" || $2 == \"d\"')",
+      "Bash(~/.platformio/packages/toolchain-atmelavr/bin/avr-nm --print-file-name -C d:/projects/jef/DiveCompass/.pio/build/ATtiny3224/libFrameworkArduinoVariant.a)",
+      "Bash(~/.platformio/packages/toolchain-atmelavr/bin/avr-nm --print-file-name -C d:/projects/jef/DiveCompass/.pio/build/ATtiny3224/lib*/lib*.a)",
+      "Bash(xargs ~/.platformio/packages/toolchain-atmelavr/bin/avr-nm --print-file-name -C)",
+      "Bash(xargs ~/.platformio/packages/toolchain-atmelavr/bin/avr-nm -C)"
+    ]
+  }
+}

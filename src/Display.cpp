@@ -1,102 +1,96 @@
-//
-// Created by redha on 2/16/2025.
-//
-
 #include "Display.h"
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_GC9A01A.h>
-#include <avr/io.h>
-#include <Fonts/FreeMonoBold24pt7b.h>
-#include <Fonts/FreeMonoBold12pt7b.h>
+#include <Adafruit_SSD1306.h>
 
-#define TFT_CS 7 // Chip select
-#define TFT_DC 8 // Data/command
+#define SCREEN_WIDTH  128
+#define SCREEN_HEIGHT  64
+#define SCREEN_ADDR  0x3C
 
-#define MAX_CALIBRATION_TIME_MS 10000
+static Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-// Display constructor for primary hardware SPI connection -- the specific
-// pins used for writing to the display are unique to each board and are not
-// negotiable. "Soft" SPI (using any pins) is an option but performance is
-// reduced; it's rarely used, see header file for syntax if needed.
-Adafruit_GC9A01A tft(TFT_CS, TFT_DC);
-
-void Display::init() {
-    tft.begin(12000000);
-    clear();
-}
-
-void Display::clear() {
-    tft.fillScreen(GC9A01A_BLACK);
-    tft.setTextColor(GC9A01A_WHITE);
-
-    tft.setCursor(50,120);
-    tft.setTextColor(GC9A01A_ORANGE);
-    tft.setFont(&FreeMonoBold12pt7b);
-    tft.write("STARTING");
-
-    tft.endWrite();
-}
-
-void Display::speedTest() {
-    uint16_t color = testWhite ? GC9A01A_WHITE : GC9A01A_BLACK;
-    tft.drawFastHLine(0, testRow, 240, color);
-    testRow++;
-    if (testRow >= 240) {
-        testRow = 0;
-        testWhite = !testWhite;
+void Display::setup(const Devices* _devices) {
+    devices = _devices;
+    Serial.println(F("Display: initializing SSD1306..."));
+    if (!oled.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDR)) {
+        Serial.println(F("Display: [FAIL] SSD1306 not found"));
+        return;
     }
-    tft.endWrite();
+
+    oled.clearDisplay();
+    oled.setTextColor(SSD1306_WHITE);
+    oled.setTextSize(1);
+    oled.setCursor(0, 0);
+    oled.print(F("DiveCompass"));
+    oled.display();
+    Serial.println(F("Display: [OK] SSD1306 ready"));
+}
+
+static const char* magLabel(uint8_t acc) {
+    switch (acc) {
+        case 1:  return "Low";
+        case 2:  return "Med";
+        case 3:  return "High";
+        default: return "Unrel";
+    }
 }
 
 void Display::update() {
-    speedTest();
+    char buf[22];
+    char v0[9], v1[9];
+
+    const CompassBNO08X* c0 = devices->compass0;
+    const CompassBNO08X* c1 = devices->compass1;
+
+    oled.clearDisplay();
+
+    oled.setTextColor(SSD1306_WHITE);
+
+    oled.setTextSize(1);
+    double h1 = c0->getHeading();
+    double h2 = c1->getHeading();
+    snprintf(buf, sizeof(buf), "H: %03.2f %03.2f", h1, h2);
+    oled.setCursor(0, 0);
+    oled.print(buf);
+
+    double diff = fabs(h1 - h2);
+    double diffPercent = diff/360.0*100.0;
+    snprintf(buf, sizeof(buf), "Diff: %03.2f%%", diffPercent);
+    oled.setCursor(0, 22);
+    oled.print(buf);
+
+    snprintf(buf, sizeof(buf), "P: %03.2f %03.2f", c0->getPitch(), c1->getPitch());
+    oled.setCursor(0, 33);
+    oled.print(buf);
+
+    snprintf(buf, sizeof(buf), "R: %03.2f %03.2f", c0->getRoll(), c1->getRoll());
+    oled.setCursor(0, 44);
+    oled.print(buf);
+
+    oled.setCursor(0, 55);
+    snprintf(buf, sizeof(buf), "Mag:%s-%s", magLabel(c0->getMagAccuracy()), magLabel(c1->getMagAccuracy()));
+    oled.print(buf);
+
+    oled.display();
 }
 
-void Display::updateFromISR() {
-    if(calibrationStartTime > 0) {
-        unsigned long elapsedTime = millis() - calibrationStartTime;
-        if(elapsedTime > MAX_CALIBRATION_TIME_MS) elapsedTime = MAX_CALIBRATION_TIME_MS;
-        double percentComplete = ((double)elapsedTime) / MAX_CALIBRATION_TIME_MS;
-        double radians = percentComplete * 2 * PI;
-        double xEndD = 120 * cos(radians);
-        double yEndD = 120 * sin(radians);
-        double xStartD = xEndD / 120 * 110;
-        double yStartD = yEndD / 120 * 110;
-
-        int16_t xStart = round(xStartD) + 120;
-        int16_t yStart = round(yStartD) + 120;
-        int16_t xEnd = round(xEndD) + 120;
-        int16_t yEnd = round(yEndD) + 120;
-
-
-
-        if(xEnd != lastXEnd || yEnd != lastYEnd || xStart != lastXStart || yStart != lastYStart) {
-            tft.drawLine(xStart, yStart, xEnd, yEnd, GC9A01A_CYAN);
-            lastXStart = xStart;
-            lastYStart = yStart;
-            lastXEnd = xEnd;
-            lastYEnd = yEnd;
-        }
-    }
+void Display::showCalibrating(uint8_t acc0, uint8_t acc1) {
+    char buf[22];
+    oled.clearDisplay();
+    oled.setTextSize(1);
+    oled.setTextColor(SSD1306_WHITE);
+    oled.setCursor(0,  0); oled.print(F("** CALIBRATING **"));
+    oled.setCursor(0, 16); oled.print(F("Move in figure-8"));
+    oled.setCursor(0, 32); snprintf(buf, sizeof(buf), "Fwd : %s", magLabel(acc0)); oled.print(buf);
+    oled.setCursor(0, 42); snprintf(buf, sizeof(buf), "Rear: %s", magLabel(acc1)); oled.print(buf);
+    oled.display();
 }
 
-void Display::beginCalibration() {
-    clear();
-    tft.setCursor(50,120);
-    tft.setTextColor(GC9A01A_ORANGE);
-    tft.setFont(&FreeMonoBold12pt7b);
-    tft.write("CALIBRATING");
-    tft.endWrite();
-
-    calibrationStartTime = millis();
-    if(calibrationStartTime == 0) {
-        calibrationStartTime = 1;
-    }
-    lastXStart = lastYStart = lastXEnd = lastYEnd = 255;
+void Display::showCalibrationSaved() {
+    oled.clearDisplay();
+    oled.setTextSize(1);
+    oled.setTextColor(SSD1306_WHITE);
+    oled.setCursor(0, 20); oled.print(F("  Calibration"));
+    oled.setCursor(0, 32); oled.print(F("    Saved!"));
+    oled.display();
 }
-
-void Display::endCalibration() {
-    calibrationStartTime = 0;
-}
-

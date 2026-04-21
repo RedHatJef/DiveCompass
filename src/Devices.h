@@ -1,16 +1,11 @@
-//
-// Created by redha on 2/16/2025.
-//
-
 #ifndef DIVECOMPASS_DEVICES_H
 #define DIVECOMPASS_DEVICES_H
 
-#include "Display.h"
-#include "CompassBase.h"
+#include "CompassBNO08X.h"
 
 typedef struct Devices {
-    Display* display;
-    CompassBase* compass;
+    CompassBNO08X* compass0;
+    CompassBNO08X* compass1;
 };
 
 #endif //DIVECOMPASS_DEVICES_H

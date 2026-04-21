@@ -1,199 +1,131 @@
-//
-// Created by redha on 2/15/2025.
-//
-
-#include <SparkFun_BNO08x_Arduino_Library.h>
 #include "CompassBNO08X.h"
+#include <Arduino.h>
+#include <Wire.h>
 
-static BNO08x myIMU;
+static uint8_t _nextSlot = 0;
 
-// For the most reliable interaction with the SHTP bus, we need
-// to use hardware reset control, and to monitor the H_INT pin.
-// The H_INT pin will go low when its okay to talk on the SHTP bus.
-// Note, these can be other GPIO if you like.
-// Define as -1 to disable these features.
-#define BNO08X_INT  9
-//#define BNO08X_INT  -1
-#define BNO08X_RST  10
-//#define BNO08X_RST  -1
-
-#define BNO08X_ADDR 0x4B  // SparkFun BNO08x Breakout (Qwiic) defaults to 0x4B
-//#define BNO08X_ADDR 0x4A // Alternate address if ADR jumper is closed
-
-// Here is where you define the sensor outputs you want to receive
 void CompassBNO08X::setReports() {
-    Serial.println("Setting desired reports");
-    if (myIMU.enableMagnetometer(1) == true) {
-        Serial.println(F("Magnetometer enabled"));
-        Serial.println(F("Output in form x, y, z, in uTesla"));
+    sh2_activate(_sh2Slot);
+    Serial.println(F("BNO08x: enabling sensor reports..."));
+
+    if (myIMU.enableMagnetometer(10)) {
+        Serial.println(F("  [OK] Magnetometer (10ms interval, for calibration status)"));
     } else {
-        Serial.println("Could not enable magnetometer");
+        Serial.println(F("  [FAIL] Magnetometer could not be enabled"));
     }
 
-    if (myIMU.enableGameRotationVector(1) == true) {
-        Serial.println(F("Game Rotation vector enabled"));
-        Serial.println(F("Output in form i, j, k, real"));
+    if (myIMU.enableARVRStabilizedRotationVector(10)) {
+        Serial.println(F("  [OK] ARVR Stabilized Rotation Vector (10ms interval)"));
     } else {
-        Serial.println("Could not enable game rotation vector");
+        Serial.println(F("  [FAIL] ARVR Stabilized Rotation Vector could not be enabled"));
     }
 }
 
-void CompassBNO08X::init() {
-    Serial.println("Initializing BNO08x");
+void CompassBNO08X::init(uint8_t addr, int intPin, int rstPin) {
+    _sh2Slot = _nextSlot++;
 
-    pinMode(BNO08X_INT, INPUT);
-    pinMode(BNO08X_RST, OUTPUT);
+    Serial.printf(F("BNO08x[%d]: initializing  INT:%d  RST:%d  addr:0x%02X\r\n"),
+                  _sh2Slot, intPin, rstPin, addr);
 
-    //if (myIMU.begin() == false) {  // Setup without INT/RST control (Not Recommended)
-    if (!myIMU.begin(BNO08X_ADDR, Wire, BNO08X_INT, BNO08X_RST)) {
-        Serial.println("BNO08x not detected at default I2C address. Check your jumpers and the hookup guide. Freezing...");
+    if (intPin != -1) pinMode(intPin, INPUT);
+    if (rstPin != -1) pinMode(rstPin, OUTPUT);
+
+    Serial.printf(F("BNO08x[%d]: calling begin()...\r\n"), _sh2Slot);
+    delay(100);
+
+    sh2_activate(_sh2Slot);
+    if (!myIMU.begin(addr, Wire, intPin, rstPin)) {
+        Serial.printf(F("BNO08x[%d]: [FAIL] not detected. Halting.\r\n"), _sh2Slot);
         while (1);
     }
+    Serial.printf(F("BNO08x[%d]: [OK] device found and responding\r\n"), _sh2Slot);
+    delay(1000);
 
-    Serial.println("BNO08x found!");
+    Serial.printf(F("BNO08x[%d]: sending calibration config...\r\n"), _sh2Slot);
     calibrate();
 
+    Serial.printf(F("BNO08x[%d]: enabling reports...\r\n"), _sh2Slot);
+    delay(500);
     setReports();
-    Serial.println("Reading events");
+
+    Serial.printf(F("BNO08x[%d]: init complete\r\n"), _sh2Slot);
+    delay(500);
 }
 
-//Given a accuracy number, print what it means
-void printAccuracyLevel(byte accuracyNumber)
-{
-    if(accuracyNumber == 0) Serial.print(F("Unreliable"));
-    else if(accuracyNumber == 1) Serial.print(F("Low"));
-    else if(accuracyNumber == 2) Serial.print(F("Medium"));
-    else if(accuracyNumber == 3) Serial.print(F("High"));
+static void printAccuracyLevel(uint8_t n) {
+    if      (n == 0) Serial.print(F("Unreliable"));
+    else if (n == 1) Serial.print(F("Low"));
+    else if (n == 2) Serial.print(F("Medium"));
+    else             Serial.print(F("High"));
 }
 
-unsigned long previousMillis = 0;
+static unsigned long previousMillis[2] = {0, 0};
 #define DEBUG_INTERVAL_MS 500
 
+static void quatToEuler(float qi, float qj, float qk, float qr,
+                        float &yaw, float &pitch, float &roll) {
+    float sqr = sq(qr), sqi = sq(qi), sqj = sq(qj), sqk = sq(qk);
+    yaw   = atan2(2.0f * (qi * qj + qk * qr),  (sqi - sqj - sqk + sqr));
+    pitch = asin(-2.0f * (qi * qk - qj * qr)  / (sqi + sqj + sqk + sqr));
+    roll  = atan2(2.0f * (qj * qk + qi * qr), (-sqi - sqj + sqk + sqr));
+}
+
 bool CompassBNO08X::update() {
-    if(myIMU.wasReset()) {
-        Serial.print("sensor was reset ");
+    sh2_activate(_sh2Slot);
+
+    if (myIMU.wasReset()) {
+        Serial.printf(F("BNO08x[%d]: sensor was reset\r\n"), _sh2Slot);
         setReports();
     }
 
-    // Has a new event come in on the Sensor Hub Bus?
-    if (myIMU.getSensorEvent() == true) {
-        // is the event a report of the magnetometer?
+    if (myIMU.getSensorEvent()) {
         if (myIMU.getSensorEventID() == SENSOR_REPORTID_MAGNETIC_FIELD) {
-            mx = myIMU.getMagX();
-            my = myIMU.getMagY();
-            mz = myIMU.getMagZ();
             magAccuracy = myIMU.getMagAccuracy();
         }
-            // is the event a report of the game rotation vector?
-        else if (myIMU.getSensorEventID() == SENSOR_REPORTID_GAME_ROTATION_VECTOR) {
-            quatI = myIMU.getGameQuatI();
-            quatJ = myIMU.getGameQuatJ();
-            quatK = myIMU.getGameQuatK();
-            quatReal = myIMU.getGameQuatReal();
+        else if (myIMU.getSensorEventID() == SENSOR_REPORTID_AR_VR_STABILIZED_ROTATION_VECTOR) {
+            float qi = myIMU.getQuatI();
+            float qj = myIMU.getQuatJ();
+            float qk = myIMU.getQuatK();
+            float qr = myIMU.getQuatReal();
+            quatToEuler(qi, qj, qk, qr, yaw, pitch, roll);
+
+            float b = fmod(degrees(yaw) + 90.0f, 360.0f);
+            if (b < 0) b += 360.0f;
+            heading = b;
         }
     }
 
-    // time since last debug data printed to terminal
-    unsigned long microsSinceLastSerialPrint = (millis() - previousMillis);
-
-    // Only print data to the terminal at a user deficed interval
-    if(microsSinceLastSerialPrint > DEBUG_INTERVAL_MS)
-    {
-        //float azimuth = atan2(mx, my) * 180.0 / PI;
-
-        float sqr = sq(quatReal);
-        float sqi = sq(quatI);
-        float sqj = sq(quatJ);
-        float sqk = sq(quatK);
-
-        float yaw = atan2(2.0 * (quatI * quatJ + quatK * quatReal), (sqi - sqj - sqk + sqr));
-        float pitch = asin(-2.0 * (quatI * quatK - quatJ * quatReal) / (sqi + sqj + sqk + sqr));
-        float roll = atan2(2.0 * (quatJ * quatK + quatI * quatReal), (-sqi - sqj + sqk + sqr));
-
-        float sinRoll = sin(roll);
-        float cosRoll = cos(roll);
-        float sinPitch = sin(pitch);
-        float cosPitch = cos(pitch);
-
-        float LHS = -mx * cosPitch + my * sinPitch*sinRoll + mz * sinPitch * cosRoll;
-        float RHS = mz * sinRoll - my * cosRoll;
-        float bearing = atan2(-LHS, RHS) * 57.3;
-        bearing += 90;
-        if(bearing < 0) bearing += 360;
-
-        Serial.printf(F("Reading: (%f), yaw=%f, pitch=%f, roll=%f"), bearing, yaw, pitch, roll);
+    if ((millis() - previousMillis[_sh2Slot]) > DEBUG_INTERVAL_MS) {
+        Serial.printf(F("[%d] Heading:%.3f  pitch=%.3f  roll=%.3f  mag="),
+                      _sh2Slot, heading, degrees(pitch), degrees(roll));
         printAccuracyLevel(magAccuracy);
         Serial.println();
-
-//        Serial.print(mx, 2);
-//        Serial.print("\t\t");
-//        Serial.print(my, 2);
-//        Serial.print("\t\t");
-//        Serial.print(mz, 2);
-//        Serial.print("\t\t");
-//        printAccuracyLevel(magAccuracy);
-//        Serial.print("\t\t");
-//
-//        Serial.print(quatI, 2);
-//        Serial.print("\t\t");
-//        Serial.print(quatJ, 2);
-//        Serial.print("\t\t");
-//        Serial.print(quatK, 2);
-//        Serial.print("\t\t");
-//        Serial.print(quatReal, 2);
-//        Serial.print("\t\t");
-//
-//        Serial.print(microsSinceLastSerialPrint);
-//        Serial.println();
-        previousMillis = millis();
-    }
-
-    if(Serial.available())
-    {
-        byte incoming = Serial.read();
-
-        if(incoming == 's')
-        {
-            // Saves the current dynamic calibration data (DCD) to memory
-            // Note, The BNO08X stores updated Dynamic Calibration Data (DCD) to RAM
-            // frequently (every 5 seconds), so this command may not be necessary
-            // depending on your application.
-            if (myIMU.saveCalibration() == true) {
-                Serial.println(F("Calibration data was saved successfully"));
-            } else {
-                Serial.println("Save Calibration Failure");
-            }
-        }
+        previousMillis[_sh2Slot] = millis();
     }
 
     return false;
 }
 
 void CompassBNO08X::calibrate() {
-    // Enable dynamic calibration for desired sensors (accel, gyro, and mag)
-    // uncomment/comment out as needed to try various options
-    if (myIMU.setCalibrationConfig(SH2_CAL_ACCEL || SH2_CAL_GYRO || SH2_CAL_MAG)) { // all three sensors
-        //if (myIMU.setCalibrationConfig(SH2_CAL_ACCEL || SH2_CAL_MAG) == true) { // Default settings
-        //if (myIMU.setCalibrationConfig(SH2_CAL_ACCEL) == true) { // only accel
-        Serial.println(F("Calibration Command Sent Successfully"));
+    sh2_activate(_sh2Slot);
+    Serial.printf(F("BNO08x[%d]: enabling dynamic calibration (accel+gyro+mag)...\r\n"), _sh2Slot);
+    if (myIMU.setCalibrationConfig(SH2_CAL_ACCEL | SH2_CAL_GYRO | SH2_CAL_MAG)) {
+        Serial.printf(F("BNO08x[%d]:   [OK] calibration config accepted\r\n"), _sh2Slot);
     } else {
-        Serial.println("Could not send Calibration Command. Freezing...");
-        while(1) delay(10);
+        Serial.printf(F("BNO08x[%d]:   [FAIL] calibration config rejected. Halting.\r\n"), _sh2Slot);
+        while (1) delay(10);
     }
 }
 
-int CompassBNO08X::getHeading() const {
-    return 0;
+bool CompassBNO08X::saveCalibration() {
+    sh2_activate(_sh2Slot);
+    bool ok = myIMU.saveCalibration();
+    Serial.printf(F("BNO08x[%d]: calibration save %s\r\n"), _sh2Slot, ok ? "OK" : "FAILED");
+    return ok;
 }
 
-double CompassBNO08X::getYaw() const {
-    return 0;
-}
-
-double CompassBNO08X::getPitch() const {
-    return 0;
-}
-
-double CompassBNO08X::getRoll() const {
-    return 0;
-}
+double  CompassBNO08X::getHeading()     const { return heading; }
+double  CompassBNO08X::getYaw()         const { return degrees(yaw); }
+double  CompassBNO08X::getPitch()       const { return degrees(pitch); }
+double  CompassBNO08X::getRoll()        const { return degrees(roll); }
+uint8_t CompassBNO08X::getMagAccuracy() const { return magAccuracy; }

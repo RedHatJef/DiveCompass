@@ -1,34 +1,19 @@
-//
-// Created by redha on 2/16/2025.
-//
-
 #ifndef DIVECOMPASS_DISPLAY_H
 #define DIVECOMPASS_DISPLAY_H
 
 #include <stdint.h>
+#include "Devices.h"
 
 class Display {
 public:
     Display() = default;
-    void init();
+    void setup(const Devices* devices);
     void update();
-    void updateFromISR();
-
-    void beginCalibration();
-    void endCalibration();
-
-    void clear();
-    void speedTest();
+    void showCalibrating(uint8_t acc0, uint8_t acc1);
+    void showCalibrationSaved();
 
 private:
-    unsigned long calibrationStartTime = 0;
-    uint8_t lastXStart = 0;
-    uint8_t lastYStart = 0;
-    uint8_t lastXEnd = 0;
-    uint8_t lastYEnd = 0;
-    uint8_t testRow = 0;
-    bool testWhite = true;
+    const Devices* devices;
 };
-
 
 #endif //DIVECOMPASS_DISPLAY_H
